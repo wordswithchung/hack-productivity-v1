@@ -10,7 +10,7 @@ function searchForPhotos() {
 
 function makeApiCall(searchTerm) {
     let request = new XMLHttpRequest();
-    const accessKey = '5aa9282bbef2ad96f3d61c307fb1d036c4f19b9c6fe5af4b8d0be77dd8d61116';
+    const accessKey = '';
     let url = `https://api.unsplash.com/search/photos?page=1&query=${searchTerm}&client_id=${accessKey}`;
 
     request.onreadystatechange = function() {
@@ -70,7 +70,7 @@ function displayPhoto(userName,
 
 function downloadPhoto(photoId, result) {
     let request = new XMLHttpRequest();
-    const accessKey = '5aa9282bbef2ad96f3d61c307fb1d036c4f19b9c6fe5af4b8d0be77dd8d61116';
+    const accessKey = '';
     let url = `https://api.unsplash.com/photos/${photoId}/download?client_id=${accessKey}`;
 
     request.onreadystatechange = function() {
