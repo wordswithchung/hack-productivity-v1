@@ -1,24 +1,4 @@
-$(document).ready(() => {
-    run();
-});
-  
-// The initialize function must be run each time a new page is loaded
-Office.initialize = (reason) => {
-    $('#sideload-msg').hide();
-    $('#app-body').show();
-};
-
-async function run() {
-    // Office.context.document.setSelectedDataAsync('Hello World!', {
-    //     coercionType: Office.CoercionType.Text
-    // }, result => {
-    //     if (result.status === Office.AsyncResultStatus.Failed) {
-    //         console.error(result.error.message);
-    //     }
-    // });
-}
-
-function searchForGif() {
+function searchForPhotos() {
     let searchInput = document.getElementById('searchInput');
     let searchTerm = searchInput.value ? searchInput.value : '';
     if (searchTerm) {
@@ -30,7 +10,8 @@ function searchForGif() {
 
 function makeApiCall(searchTerm) {
     let request = new XMLHttpRequest();
-    let url = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${searchTerm}&limit=25&offset=0&rating=G&lang=en`;
+    const accessKey = '5aa9282bbef2ad96f3d61c307fb1d036c4f19b9c6fe5af4b8d0be77dd8d61116';
+    let url = `https://api.unsplash.com/search/photos?page=1&query=${searchTerm}&client_id=${accessKey}`;
 
     request.onreadystatechange = function() {
       if (this.readyState === 4 && this.status === 200) {
@@ -43,48 +24,65 @@ function makeApiCall(searchTerm) {
     request.send();
 
     getElements = function(response) {
-        const responses = response.data;
-        responses.forEach(function(gif) {
-            let imgLink = gif.images.original.url;
-            let imgSrc = gif.images.fixed_height_downsampled.webp;
-            let imgHeight = gif.images.fixed_height_downsampled.height;
-            let imgWidth = gif.images.fixed_height_downsampled.width;
-            let imgAlt = gif.title;
-            displayGif(imgLink,
-                       imgSrc,
-                       imgHeight,
-                       imgWidth,
-                       imgAlt);
+        const results = response.results;
+        results.forEach((result) => {
+            downloadPhoto(result.id, result);
         });
     }
 }
 
-function displayGif(imgLink, imgSrc, imgHeight, imgWidth, imgAlt) {
+function displayPhoto(userName, 
+                      userHtmlUrl, 
+                      displayThumbUrl,
+                      downloadUrl) {
     const containerDiv = document.createElement('div');
     containerDiv.setAttribute('class', 'container');
 
-    const img = document.createElement('img');
-    img.src = imgSrc;
-    img.height = imgHeight;
-    img.width = imgWidth;
-    img.alt = imgAlt;
-    img.setAttribute('class', 'image');
+    const downloadA = document.createElement('a');
+    downloadA.href = downloadUrl;
+    downloadA.target = '_blank';
 
+    const img = document.createElement('img');
+    img.src = displayThumbUrl;
+    downloadA.appendChild(img);
+
+    const attributionLink = document.createElement('a');
+    attributionLink.href = userHtmlUrl;
+    attributionLink.target = '_blank';
+    attributionLink.innerHTML = 'Image by ' + userName + ' via Unsplash';
+    
     const textDiv = document.createElement('div');
     textDiv.setAttribute('class', 'text');
-    textDiv.innerHTML += 'Add GIF to Slide';
+    textDiv.innerHTML += 'CLICK TO OPEN & DOWNLOAD PHOTO';
 
     const overlayDiv = document.createElement('div');
     overlayDiv.setAttribute('class', 'overlay');
     overlayDiv.appendChild(textDiv);
 
-    containerDiv.appendChild(img);
+    containerDiv.appendChild(downloadA);
+    containerDiv.appendChild(document.createElement('br'));
+    containerDiv.appendChild(attributionLink);
     containerDiv.appendChild(overlayDiv);
 
     // This next line will just add it to the <body> tag
     document.getElementById('search-results').appendChild(containerDiv);
 }
 
-function addGifToSlide(imgLink) {
+function downloadPhoto(photoId, result) {
+    let request = new XMLHttpRequest();
+    const accessKey = '5aa9282bbef2ad96f3d61c307fb1d036c4f19b9c6fe5af4b8d0be77dd8d61116';
+    let url = `https://api.unsplash.com/photos/${photoId}/download?client_id=${accessKey}`;
 
+    request.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        let response = JSON.parse(this.responseText);
+        displayPhoto(result.user.name,
+                     result.user.links.html,
+                     result.urls.thumb,
+                     response.url);
+      }
+    }
+
+    request.open('GET', url, true);
+    request.send();
 }
